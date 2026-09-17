@@ -35,9 +35,15 @@ struct QuranReaderView: View {
           }
           .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .content(let ayahs):
-          HStack(spacing: AppSpacing.xl) {
+          HStack(alignment: .top, spacing: AppSpacing.xl) {
             readerContent(ayahs: ayahs)
+              .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+
             if isPlayerVisible {
+              // Keep the player inside a stable, top-anchored layout slot.
+              // Audio track changes briefly update playback state/duration; if the
+              // HStack uses its default center alignment, those intrinsic-size
+              // changes can make the whole sidebar jump by a few points.
               ReaderControlsBar(
                 focusTarget: $focusTarget,
                 onReciter: { viewModel.showQuickSettings = true },
@@ -45,8 +51,10 @@ struct QuranReaderView: View {
                 focusedAyahNumber: viewModel.focusedAyahNumber
               )
               .frame(width: 330)
+              .frame(maxHeight: .infinity, alignment: .top)
             }
           }
+          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
           .padding(.horizontal, AppSpacing.xl)
           .padding(.bottom, AppSpacing.lg)
         }
