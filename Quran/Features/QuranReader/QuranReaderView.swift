@@ -3,6 +3,7 @@ import SwiftUI
 struct QuranReaderView: View {
   @State private var viewModel: QuranReaderViewModel
   @State private var isPlayerVisible = true
+  @State private var playbackReciterIdentifier: String?
   @Environment(PreferencesStore.self) private var preferences
   @Environment(ReadingStateStore.self) private var readingStateStore
   @Environment(PlaybackStateStore.self) private var playbackStateStore
@@ -73,6 +74,9 @@ struct QuranReaderView: View {
       restoreReadingPosition()
       configurePlaybackQueue()
     }
+    .onAppear {
+      refreshPlaybackQueueIfNeeded()
+    }
     .onDisappear {
       viewModel.saveReadingState(store: readingStateStore)
       savePlaybackState()
@@ -103,7 +107,7 @@ struct QuranReaderView: View {
       viewModel.playingAyahNumber = ayahNumber
     }
     .onChange(of: preferences.selectedReciter) { _, _ in
-      configurePlaybackQueue()
+      refreshPlaybackQueueIfNeeded()
     }
   }
 
@@ -318,9 +322,10 @@ struct QuranReaderView: View {
 
   private func configurePlaybackQueue() {
     guard case .content(let ayahs) = viewModel.viewState else { return }
+    let reciterIdentifier = preferences.selectedReciter
     var queue: [(ayahNumber: Int, url: URL)] = []
     let bismillahURL = Endpoint.ayahAudio(
-      edition: preferences.selectedReciter,
+      edition: reciterIdentifier,
       ayah: 1
     ).url
     for ayah in ayahs {
@@ -334,7 +339,7 @@ struct QuranReaderView: View {
         (
           ayahNumber: ayah.numberInSurah,
           url: Endpoint.ayahAudio(
-            edition: preferences.selectedReciter,
+            edition: reciterIdentifier,
             ayah: ayah.globalNumber
           ).url
         ))
@@ -346,6 +351,12 @@ struct QuranReaderView: View {
       ayahs: queue,
       startingAt: viewModel.focusedAyahNumber
     )
+    playbackReciterIdentifier = reciterIdentifier
+  }
+
+  private func refreshPlaybackQueueIfNeeded() {
+    guard playbackReciterIdentifier != preferences.selectedReciter else { return }
+    configurePlaybackQueue()
   }
 
   private func savePlaybackState() {

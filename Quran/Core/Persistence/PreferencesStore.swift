@@ -3,8 +3,8 @@ import Observation
 
 @MainActor
 @Observable
-class PreferencesStore {
-    private let defaults = UserDefaults.standard
+final class PreferencesStore {
+    @ObservationIgnored private let defaults: UserDefaults
     
     private enum Keys {
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
@@ -15,23 +15,19 @@ class PreferencesStore {
     }
     
     var hasCompletedOnboarding: Bool {
-        get { defaults.bool(forKey: Keys.hasCompletedOnboarding) }
-        set { defaults.set(newValue, forKey: Keys.hasCompletedOnboarding) }
+        didSet { defaults.set(hasCompletedOnboarding, forKey: Keys.hasCompletedOnboarding) }
     }
     
     var selectedTranslation: String {
-        get { defaults.string(forKey: Keys.selectedTranslation) ?? "en.sahih" }
-        set { defaults.set(newValue, forKey: Keys.selectedTranslation) }
+        didSet { defaults.set(selectedTranslation, forKey: Keys.selectedTranslation) }
     }
     
     var selectedReciter: String {
-        get { defaults.string(forKey: Keys.selectedReciter) ?? "ar.alafasy" }
-        set { defaults.set(newValue, forKey: Keys.selectedReciter) }
+        didSet { defaults.set(selectedReciter, forKey: Keys.selectedReciter) }
     }
     
     var arabicFontName: String {
-        get { defaults.string(forKey: Keys.arabicFontName) ?? "" }
-        set { defaults.set(newValue, forKey: Keys.arabicFontName) }
+        didSet { defaults.set(arabicFontName, forKey: Keys.arabicFontName) }
     }
     
     var fontSize: Double {
@@ -45,7 +41,12 @@ class PreferencesStore {
         }
     }
 
-    init() {
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        hasCompletedOnboarding = defaults.bool(forKey: Keys.hasCompletedOnboarding)
+        selectedTranslation = defaults.string(forKey: Keys.selectedTranslation) ?? "en.sahih"
+        selectedReciter = defaults.string(forKey: Keys.selectedReciter) ?? "ar.alafasy"
+        arabicFontName = defaults.string(forKey: Keys.arabicFontName) ?? ""
         let storedFontSize = defaults.double(forKey: Keys.fontSize)
         fontSize = storedFontSize > 0 ? storedFontSize : 36.0
     }

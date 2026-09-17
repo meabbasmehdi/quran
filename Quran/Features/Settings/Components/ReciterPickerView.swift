@@ -4,6 +4,7 @@ struct ReciterPickerView: View {
     let viewModel: SettingsViewModel
     
     @Environment(PreferencesStore.self) private var preferences
+    @Environment(AudioPlayerManager.self) private var audioPlayer
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focusedIdentifier: String?
     
@@ -28,7 +29,10 @@ struct ReciterPickerView: View {
                         LazyVStack(spacing: AppSpacing.sm) {
                             ForEach(editions) { edition in
                                 Button {
-                                    preferences.selectedReciter = edition.identifier
+                                    if preferences.selectedReciter != edition.identifier {
+                                        preferences.selectedReciter = edition.identifier
+                                        audioPlayer.stop()
+                                    }
                                     dismiss()
                                 } label: {
                                     HStack {

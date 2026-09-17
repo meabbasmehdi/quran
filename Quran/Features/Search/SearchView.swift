@@ -54,8 +54,10 @@ struct SearchView: View {
             // Search field
             HStack(spacing: AppSpacing.md) {
                 TextField("Enter a word or phrase...", text: $viewModel.query)
+                    .textFieldStyle(.plain)
                     .font(AppTypography.body)
                     .foregroundStyle(AppColors.textPrimary)
+                    .tint(AppColors.accent)
                     .focused($focusTarget, equals: .searchField)
                     .onSubmit {
                         viewModel.performSearch()
