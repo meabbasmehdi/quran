@@ -72,10 +72,10 @@ struct QuranReaderView: View {
     .task {
       await viewModel.loadContent(preferences: preferences)
       restoreReadingPosition()
-      configurePlaybackQueue()
+      await configurePlaybackQueue()
     }
     .onAppear {
-      refreshPlaybackQueueIfNeeded()
+      Task { await refreshPlaybackQueueIfNeeded() }
     }
     .onDisappear {
       viewModel.saveReadingState(store: readingStateStore)
@@ -107,7 +107,7 @@ struct QuranReaderView: View {
       viewModel.playingAyahNumber = ayahNumber
     }
     .onChange(of: preferences.selectedReciter) { _, _ in
-      refreshPlaybackQueueIfNeeded()
+      Task { await refreshPlaybackQueueIfNeeded() }
     }
   }
 
@@ -320,14 +320,14 @@ struct QuranReaderView: View {
     focusTarget = .readerAyah(number)
   }
 
-  private func configurePlaybackQueue() {
+  private func configurePlaybackQueue() async {
     guard case .content(let ayahs) = viewModel.viewState else { return }
     let reciterIdentifier = preferences.selectedReciter
+
+    let audioURLs = await viewModel.fetchAudioURLs(reciterEdition: reciterIdentifier)
+
     var queue: [(ayahNumber: Int, url: URL)] = []
-    let bismillahURL = Endpoint.ayahAudio(
-      edition: reciterIdentifier,
-      ayah: 1
-    ).url
+    let bismillahURL = bismillahAudioURL(audioURLs: audioURLs, reciterIdentifier: reciterIdentifier)
     for ayah in ayahs {
       if ayah.numberInSurah == 1,
         ayah.surahNumber != 1,
@@ -338,25 +338,33 @@ struct QuranReaderView: View {
       queue.append(
         (
           ayahNumber: ayah.numberInSurah,
-          url: Endpoint.ayahAudio(
-            edition: reciterIdentifier,
-            ayah: ayah.globalNumber
-          ).url
+          url: audioURLs[ayah.globalNumber]
+            ?? Endpoint.ayahAudio(edition: reciterIdentifier, ayah: ayah.globalNumber).url
         ))
     }
     if case .surah(let number) = viewModel.readingSource {
       audioPlayer.setSurah(number)
     }
-    audioPlayer.loadPlaybackQueue(
+    audioPlayer.reloadPlaybackQueue(
       ayahs: queue,
       startingAt: viewModel.focusedAyahNumber
     )
     playbackReciterIdentifier = reciterIdentifier
   }
 
-  private func refreshPlaybackQueueIfNeeded() {
+  private func refreshPlaybackQueueIfNeeded() async {
     guard playbackReciterIdentifier != preferences.selectedReciter else { return }
-    configurePlaybackQueue()
+    await configurePlaybackQueue()
+  }
+
+  /// Builds the Bismillah URL from the fetched audio URLs so it uses the same
+  /// correct bitrate as the reciter's other ayahs, not the 128kbps default.
+  private func bismillahAudioURL(audioURLs: [Int: URL], reciterIdentifier: String) -> URL {
+    if let bismillah = audioURLs[1] { return bismillah }
+    if let sample = audioURLs.values.first {
+      return sample.deletingLastPathComponent().appendingPathComponent("1.mp3")
+    }
+    return Endpoint.ayahAudio(edition: reciterIdentifier, ayah: 1).url
   }
 
   private func savePlaybackState() {

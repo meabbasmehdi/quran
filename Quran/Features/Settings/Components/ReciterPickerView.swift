@@ -2,12 +2,13 @@ import SwiftUI
 
 struct ReciterPickerView: View {
     let viewModel: SettingsViewModel
-    
+
     @Environment(PreferencesStore.self) private var preferences
-    @Environment(AudioPlayerManager.self) private var audioPlayer
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focusedIdentifier: String?
-    
+
+    @State private var isSavingSelection = false
+
     var body: some View {
         Group {
             switch viewModel.reciters {
@@ -25,15 +26,11 @@ struct ReciterPickerView: View {
                         Text("Select Reciter")
                             .font(AppTypography.headline)
                             .padding(.bottom, AppSpacing.md)
-                        
+
                         LazyVStack(spacing: AppSpacing.sm) {
                             ForEach(editions) { edition in
                                 Button {
-                                    if preferences.selectedReciter != edition.identifier {
-                                        preferences.selectedReciter = edition.identifier
-                                        audioPlayer.stop()
-                                    }
-                                    dismiss()
+                                    selectReciter(identifier: edition.identifier)
                                 } label: {
                                     HStack {
                                         VStack(alignment: .leading) {
@@ -65,10 +62,39 @@ struct ReciterPickerView: View {
                     }
                     .padding(AppSpacing.xl)
                 }
+                .task(id: editions.map(\.identifier)) {
+                    await Task.yield()
+
+                    guard focusedIdentifier == nil else { return }
+
+                    let selectedIdentifier = preferences.selectedReciter
+                    if editions.contains(where: { $0.identifier == selectedIdentifier }) {
+                        focusedIdentifier = selectedIdentifier
+                    } else {
+                        focusedIdentifier = editions.first?.identifier
+                    }
+                }
             }
         }
-        .onAppear {
-            focusedIdentifier = preferences.selectedReciter
+    }
+
+    @MainActor
+    private func selectReciter(identifier: String) {
+        guard !isSavingSelection else { return }
+        isSavingSelection = true
+
+        if preferences.selectedReciter != identifier {
+            preferences.selectedReciter = identifier
+        }
+
+        // Keep focus/checkmark synchronized with the saved value.
+        focusedIdentifier = identifier
+
+        Task { @MainActor in
+            // Give SwiftUI a chance to process the preference change before
+            // dismissing the picker so the parent row and checkmark update.
+            await Task.yield()
+            dismiss()
         }
     }
 }

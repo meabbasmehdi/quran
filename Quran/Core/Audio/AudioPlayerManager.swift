@@ -37,6 +37,23 @@ final class AudioPlayerManager {
             currentQueueIndex = 0
         }
     }
+
+    /// Replace the queue (e.g. after a reciter change) and, if audio was actively
+    /// playing, continue with the same ayah from the same position using the new
+    /// URLs so the reciter switch is seamless instead of dropping playback.
+    func reloadPlaybackQueue(ayahs: [(ayahNumber: Int, url: URL)], startingAt ayahNumber: Int? = nil) {
+        let resumePlaying = state.isPlaying || state == .buffering || state == .loading
+        let resumeAyah = currentAyahNumber
+        let resumeTime = currentTime
+
+        loadPlaybackQueue(ayahs: ayahs, startingAt: resumeAyah ?? ayahNumber)
+
+        guard resumePlaying, let resumeAyah else { return }
+        playCurrentAyah()
+        if resumeTime > 0 {
+            seek(to: resumeTime)
+        }
+    }
     
     /// Play a specific URL
     func play(url: URL) {

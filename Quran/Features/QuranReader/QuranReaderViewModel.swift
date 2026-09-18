@@ -98,4 +98,35 @@ final class QuranReaderViewModel {
             store.save(surah: nil, juz: n, ayah: ayah, scrollPosition: 0, mode: "juz")
         }
     }
+
+    /// Fetch authoritative per-ayah audio URLs for the current reading source using
+    /// the given reciter edition. The API returns the correct CDN bitrate for each
+    /// reciter, so this avoids the hard-coded 128kbps URL that returns 403 (and the
+    /// "access permission" error) for reciters without 128kbps audio.
+    func fetchAudioURLs(reciterEdition: String) async -> [Int: URL] {
+        var urls: [Int: URL] = [:]
+        do {
+            switch readingSource {
+            case .surah(let number):
+                let ayahs = try await surahRepository.fetchSurahWithAudio(
+                    number: number,
+                    reciterEdition: reciterEdition
+                )
+                for ayah in ayahs {
+                    if let url = ayah.audioURL { urls[ayah.globalNumber] = url }
+                }
+            case .juz(let number):
+                let result = try await juzRepository.fetchJuz(
+                    number: number,
+                    arabicEdition: reciterEdition
+                )
+                for ayah in result.ayahs {
+                    if let url = ayah.audioURL { urls[ayah.globalNumber] = url }
+                }
+            }
+        } catch {
+            // Leave the map empty; the caller falls back to the constructed CDN URL.
+        }
+        return urls
+    }
 }
