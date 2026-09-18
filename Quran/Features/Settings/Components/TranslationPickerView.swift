@@ -9,6 +9,8 @@ struct TranslationPickerView: View {
 
     @FocusState private var focusedIdentifier: String?
 
+    @State private var isSavingSelection = false
+
     var body: some View {
         Group {
             switch viewModel.translations {
@@ -37,7 +39,6 @@ struct TranslationPickerView: View {
                         alignment: .leading,
                         spacing: AppSpacing.md
                     ) {
-
                         Text("Select Translation")
                             .font(AppTypography.headline)
                             .padding(.bottom, AppSpacing.md)
@@ -45,10 +46,9 @@ struct TranslationPickerView: View {
                         LazyVStack(spacing: AppSpacing.sm) {
                             ForEach(editions) { edition in
                                 Button {
-                                    preferences.selectedTranslation =
-                                        edition.identifier
-
-                                    dismiss()
+                                    selectTranslation(
+                                        identifier: edition.identifier
+                                    )
                                 } label: {
                                     HStack {
                                         VStack(
@@ -71,7 +71,6 @@ struct TranslationPickerView: View {
 
                                         if preferences.selectedTranslation ==
                                             edition.identifier {
-
                                             Image(systemName: "checkmark")
                                                 .foregroundStyle(
                                                     AppColors.accent
@@ -88,16 +87,13 @@ struct TranslationPickerView: View {
                                 }
                                 .buttonStyle(QuranButtonStyle())
 
-                                // Explicitly participate in tvOS focus.
-                                .focusable(true)
-
-                                // Single source of truth for focus.
+                                // Do NOT add .focusable(true) here.
+                                // Button already participates in tvOS focus.
                                 .focused(
                                     $focusedIdentifier,
                                     equals: edition.identifier
                                 )
 
-                                // Visual styling only.
                                 .quranFocusStyle(
                                     isFocused:
                                         focusedIdentifier ==
@@ -110,10 +106,6 @@ struct TranslationPickerView: View {
                     }
                     .padding(AppSpacing.xl)
                 }
-
-                // Important:
-                // This runs when the actual translation rows exist,
-                // unlike the previous outer .onAppear.
                 .task(id: editions.map(\.identifier)) {
                     await Task.yield()
 
@@ -121,20 +113,47 @@ struct TranslationPickerView: View {
                         return
                     }
 
-                    if editions.contains(
-                        where: {
-                            $0.identifier ==
-                            preferences.selectedTranslation
-                        }
-                    ) {
-                        focusedIdentifier =
-                            preferences.selectedTranslation
+                    let selectedIdentifier =
+                        preferences.selectedTranslation
+
+                    if editions.contains(where: {
+                        $0.identifier == selectedIdentifier
+                    }) {
+                        focusedIdentifier = selectedIdentifier
                     } else {
                         focusedIdentifier =
                             editions.first?.identifier
                     }
                 }
             }
+        }
+    }
+
+    @MainActor
+    private func selectTranslation(identifier: String) {
+        guard !isSavingSelection else {
+            return
+        }
+
+        isSavingSelection = true
+
+        // Existing model/store remains the single source of truth.
+        preferences.selectedTranslation = identifier
+
+        // Only continue once the store reflects the new selection.
+        guard preferences.selectedTranslation == identifier else {
+            isSavingSelection = false
+            return
+        }
+
+        // Keep focus/checkmark synchronized with the saved value.
+        focusedIdentifier = identifier
+
+        Task { @MainActor in
+            // Give SwiftUI a chance to process the preference change
+            // before dismissing the picker.
+            await Task.yield()
+            dismiss()
         }
     }
 }
