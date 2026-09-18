@@ -14,18 +14,6 @@ struct HomeTopBar: View {
             
             HStack(spacing: AppSpacing.md) {
                 Button {
-                    router.navigate(to: .search)
-                } label: {
-                    Image(systemName: "magnifyingglass")
-                        .padding(AppSpacing.sm)
-                        .background(focusTarget == .search ? AppColors.surfaceElevated : Color.clear)
-                        .clipShape(Circle())
-                }
-                .buttonStyle(QuranButtonStyle())
-                .focused($focusTarget, equals: .search)
-                .quranFocusStyle(isFocused: focusTarget == .search)
-                
-                Button {
                     router.navigate(to: .settings)
                 } label: {
                     Image(systemName: "gearshape")

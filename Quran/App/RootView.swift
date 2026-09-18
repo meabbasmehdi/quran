@@ -56,8 +56,6 @@ struct MainNavigationView: View {
                     switch route {
                     case .reader(let source):
                         QuranReaderView(source: source)
-                    case .search:
-                        SearchView()
                     case .settings:
                         SettingsView()
                     default:

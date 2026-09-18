@@ -10,14 +10,8 @@ enum HomeTab: String, CaseIterable, Hashable {
 /// This is the single source of truth for what CAN be focused.
 enum FocusTarget: Hashable {
     // Home - Top Actions
-    case search
     case settings
 
-    // Search
-    case searchField
-    case searchClear
-    case searchResult(Int)
-    
     // Home - Navigation
     case homeTab(HomeTab)
     case homeRetry

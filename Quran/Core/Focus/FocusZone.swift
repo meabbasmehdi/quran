@@ -16,9 +16,6 @@ enum FocusZone: Hashable {
     // Settings
     case settingsList
 
-    // Search
-    case search
-    
     // Overlays
     case overlay
     

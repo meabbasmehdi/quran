@@ -41,28 +41,5 @@ struct Ayah: Identifiable, Hashable {
         self.surahName = dto.surah.name
         self.surahEnglishName = dto.surah.englishName
     }
-    
-    init(from match: SearchMatchDTO) {
-        self.globalNumber = match.number
-        self.surahNumber = match.surah.number
-        self.numberInSurah = match.numberInSurah
-        
-        // Search API might return either text or translation depending on what was searched
-        // We map it to translation for now, or arabic if the language is arabic
-        if match.edition.language == "ar" {
-            self.arabicText = match.text
-            self.translationText = nil
-        } else {
-            self.arabicText = "" // Or fetch the actual arabic text if needed
-            self.translationText = match.text
-        }
-        
-        self.audioURL = nil
-        self.juz = match.juz
-        self.page = match.page
-        self.hasSajda = false
-        self.surahName = match.surah.name
-        self.surahEnglishName = match.surah.englishName
-    }
 }
 

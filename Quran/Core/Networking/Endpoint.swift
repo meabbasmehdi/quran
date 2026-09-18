@@ -8,7 +8,6 @@ enum Endpoint: Sendable {
     case audioEditions
     case translationEditions
     case editionsByLanguage(code: String)
-    case search(keyword: String, edition: String)
     case ayahAudio(bitrate: Int = 128, edition: String, ayah: Int)
     case surahAudio(bitrate: Int = 128, edition: String, surah: Int)
     
@@ -31,9 +30,6 @@ enum Endpoint: Sendable {
             return URL(string: "\(baseURLString)/edition/type/translation")!
         case .editionsByLanguage(let code):
             return URL(string: "\(baseURLString)/edition/language/\(code)")!
-        case .search(let keyword, let edition):
-            let encodedKeyword = keyword.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? keyword
-            return URL(string: "\(baseURLString)/search/\(encodedKeyword)/all/\(edition)")!
         case .ayahAudio(let bitrate, let edition, let ayah):
             return URL(string: "\(cdnBaseURLString)/audio/\(bitrate)/\(edition)/\(ayah).mp3")!
         case .surahAudio(let bitrate, let edition, let surah):

@@ -5,7 +5,6 @@ enum AppRoute: Hashable {
     case onboarding
     case home
     case reader(ReadingSource)
-    case search
     case settings
 }
 

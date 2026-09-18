@@ -125,7 +125,7 @@ struct HomeView: View {
 
     private func focusZone(for target: FocusTarget) -> FocusZone {
         switch target {
-        case .search, .settings: return .homeTopActions
+        case .settings: return .homeTopActions
         case .homeTab: return .homeNavigation
         case .homeRetry: return .homeContentList
         case .surah, .juz: return .homeContentList
@@ -141,15 +141,11 @@ struct HomeView: View {
         }
 
         switch current {
-        case .search:
-            if direction == .right { focusTarget = .settings }
-            if direction == .down { focusTarget = .homeTab(.surah) }
         case .settings:
-            if direction == .left { focusTarget = .search }
             if direction == .down { focusTarget = .homeTab(.juz) }
         case .homeTab(.surah):
             if direction == .right { focusTarget = .homeTab(.juz) }
-            if direction == .up { focusTarget = .search }
+            if direction == .up { focusTarget = .settings }
             if direction == .down {
                 focusTarget = isShowingError ? .homeRetry : .surah(viewModel.selectedSurahIndex ?? 1)
             }

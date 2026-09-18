@@ -10,7 +10,6 @@ final class FocusMemory {
         case home
         case reader
         case settings
-        case search
         case onboarding
     }
     
