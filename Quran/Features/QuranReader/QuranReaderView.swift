@@ -199,7 +199,7 @@ struct QuranReaderView: View {
               ayah: ayah,
               displayState: viewModel.displayState(for: ayah),
               preferences: preferences,
-              action: {}
+              action: { handleAyahTap(ayah) }
             )
             .focused($focusTarget, equals: .readerAyah(ayah.numberInSurah))
             .padding(.horizontal, 40)
@@ -389,6 +389,16 @@ struct QuranReaderView: View {
   private func showPlayer() {
     isPlayerVisible = true
     focusTarget = .readerPlayerClose
+  }
+
+  /// Selecting an Ayah starts playing it immediately. Selecting the Ayah that is
+  /// already playing pauses it; selecting a different Ayah switches playback to it.
+  private func handleAyahTap(_ ayah: Ayah) {
+    if audioPlayer.currentAyahNumber == ayah.numberInSurah, audioPlayer.state.isPlaying {
+      audioPlayer.pause()
+    } else {
+      audioPlayer.playAyah(ayah.numberInSurah)
+    }
   }
 
   private func isReaderTarget(_ target: FocusTarget) -> Bool {
