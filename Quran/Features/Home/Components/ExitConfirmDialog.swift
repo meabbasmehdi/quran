@@ -11,53 +11,44 @@ struct ExitConfirmDialog: View {
 
     var body: some View {
         ZStack {
-            // Dimmed backdrop. Tapping outside acts as Cancel.
-            Color.black.opacity(0.6)
+            // Elegant dimming — dark enough to focus attention, not so dark it hides the app.
+            Color.black.opacity(0.5)
                 .ignoresSafeArea()
                 .onTapGesture {
                     onCancel()
                 }
 
-            AppCard {
-                VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                    Text("Exit App")
-                        .font(AppTypography.headline)
-                        .foregroundColor(AppColors.textPrimary)
+            VStack(spacing: 0) {
+                Text("Exit App")
+                    .font(AppTypography.headline)
+                    .foregroundColor(AppColors.textPrimary)
 
-                    Text("Are you sure you want to exit the app?")
-                        .font(AppTypography.body)
-                        .foregroundColor(AppColors.textSecondary)
+                Text("Are you sure you want to exit the app?")
+                    .font(AppTypography.body)
+                    .foregroundColor(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, AppSpacing.sm)
 
-                    HStack(spacing: AppSpacing.md) {
-                        Button("Cancel") {
-                            onCancel()
-                        }
-                        .frame(width: 200, height: 56)
-                        .buttonStyle(QuranButtonStyle())
-                        .focused($focusTarget, equals: .exitCancel)
-                        .quranFocusStyle(
-                            isFocused: focusTarget == .exitCancel,
-                            cornerRadius: AppRadius.medium
-                        )
-
-                        Button("Exit") {
-                            onConfirm()
-                        }
-                        .frame(width: 200, height: 56)
-                        .buttonStyle(QuranButtonStyle())
-                        .focused($focusTarget, equals: .exitConfirm)
-                        .quranFocusStyle(
-                            isFocused: focusTarget == .exitConfirm,
-                            cornerRadius: AppRadius.medium
-                        )
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
+                HStack(spacing: AppSpacing.md) {
+                    dialogButton(title: "Cancel", target: .exitCancel, action: onCancel)
+                    dialogButton(title: "Exit", target: .exitConfirm, action: onConfirm)
                 }
-                .padding(AppSpacing.xl)
+                .padding(.top, AppSpacing.lg)
             }
-            .frame(width: 600)
+            .frame(maxWidth: .infinity)
+            .padding(AppSpacing.xl)
+            .frame(width: 540)
+            .background(
+                RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous)
+                    .fill(AppColors.surfaceElevated)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous)
+                    .stroke(AppColors.divider, lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.45), radius: 28, x: 0, y: 12)
             .focusSection()
-            .shadow(radius: 20)
         }
         .onExitCommand {
             onCancel()
@@ -69,5 +60,31 @@ struct ExitConfirmDialog: View {
         .onDisappear {
             focusCoordinator.popOverlayFocus()
         }
+    }
+
+    /// Shared button style so both actions have identical size, padding,
+    /// corner radius, typography, and alignment. Gold accent appears only on focus.
+    @ViewBuilder
+    private func dialogButton(
+        title: String,
+        target: FocusTarget,
+        action: @escaping () -> Void
+    ) -> some View {
+        let isFocused = focusTarget == target
+        Button(title, action: action)
+            .font(AppTypography.bodyMedium)
+            .foregroundColor(AppColors.textPrimary)
+            .frame(width: 200, height: 56)
+            .background(AppColors.surface)
+            .cornerRadius(AppRadius.medium)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppRadius.medium, style: .continuous)
+                    .stroke(AppColors.divider, lineWidth: 1)
+            )
+            .buttonStyle(QuranButtonStyle())
+            .focused($focusTarget, equals: target)
+            .quranFocusStyle(isFocused: isFocused, cornerRadius: AppRadius.medium)
+            .scaleEffect(isFocused ? 1.04 : 1.0)
+            .animation(.easeInOut(duration: 0.18), value: isFocused)
     }
 }
