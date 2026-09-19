@@ -57,4 +57,8 @@ enum FocusTarget: Hashable {
     case onboardingFontOption(String)
     case onboardingFontDecrease
     case onboardingFontIncrease
+
+    // Exit confirmation dialog
+    case exitCancel
+    case exitConfirm
 }

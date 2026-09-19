@@ -1,4 +1,5 @@
 import SwiftUI
+import Darwin
 
 struct HomeView: View {
     @State private var viewModel = HomeViewModel()
@@ -7,6 +8,7 @@ struct HomeView: View {
     @Environment(ReadingStateStore.self) private var readingState
     @Environment(PlaybackStateStore.self) private var playbackState
     @FocusState private var focusTarget: FocusTarget?
+    @State private var isShowingExitConfirm = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -69,6 +71,8 @@ struct HomeView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(AppColors.background.ignoresSafeArea())
+        .disabled(isShowingExitConfirm)
+        .accessibilityHidden(isShowingExitConfirm)
         .overlay {
             switch viewModel.surahListState {
             case .idle, .loading:
@@ -77,6 +81,18 @@ struct HomeView: View {
             default:
                 EmptyView()
             }
+        }
+        .overlay {
+            if isShowingExitConfirm {
+                ExitConfirmDialog(
+                    focusTarget: $focusTarget,
+                    onCancel: { dismissExitConfirmation() },
+                    onConfirm: { exitApplication() }
+                )
+            }
+        }
+        .onExitCommand {
+            showExitConfirmation()
         }
         .task {
             await viewModel.loadSurahs()
@@ -130,6 +146,7 @@ struct HomeView: View {
         case .homeRetry: return .homeContentList
         case .surah, .juz: return .homeContentList
         case .continueReading, .continueListening: return .homeContinue
+        case .exitCancel, .exitConfirm: return .overlay
         default: return .homeContentList
         }
     }
@@ -183,6 +200,19 @@ struct HomeView: View {
     private var isShowingError: Bool {
         if case .error = viewModel.surahListState { return true }
         return false
+    }
+
+    private func showExitConfirmation() {
+        guard !isShowingExitConfirm else { return }
+        isShowingExitConfirm = true
+    }
+
+    private func dismissExitConfirmation() {
+        isShowingExitConfirm = false
+    }
+
+    private func exitApplication() {
+        exit(0)
     }
 
     private func homeErrorState(_ error: QuranError) -> some View {

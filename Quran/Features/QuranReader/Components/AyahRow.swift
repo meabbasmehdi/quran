@@ -10,24 +10,25 @@ struct AyahRow: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .trailing, spacing: AppSpacing.md) {
+            VStack(alignment: .trailing, spacing: 0) {
                 HStack(alignment: .top, spacing: AppSpacing.md) {
                     // Ayah Badge
                     ZStack {
                         Circle()
                             .stroke(AppColors.accent, lineWidth: 2)
                             .frame(width: 40, height: 40)
-                        
+
                         Text(formatAyahNumber(ayah.numberInSurah))
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(AppColors.accent)
                     }
                     .padding(.top, 8)
-                    
+
                     // Arabic Text
                     Text(displayArabicText)
                         .font(AppTypography.arabicFont(size: preferences.fontSize, name: preferences.arabicFontName))
                         .foregroundColor(AppColors.textPrimary)
+                        .lineSpacing(preferences.fontSize * 0.5)
                         .lineLimit(nil)
                         .multilineTextAlignment(.trailing)
                         .frame(maxWidth: .infinity, alignment: .trailing)
@@ -35,23 +36,25 @@ struct AyahRow: View {
                         .layoutPriority(1)
                         .environment(\.layoutDirection, .rightToLeft)
                 }
-                
+
                 // Translation Text
                 if let translation = ayah.translationText {
                     Text(translation)
                         .font(.system(size: preferences.fontSize * 0.5))
                         .foregroundColor(AppColors.textSecondary)
+                        .lineSpacing(6)
                         .lineLimit(nil)
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)
                         .environment(\.layoutDirection, .leftToRight)
+                        .padding(.top, AppSpacing.lg)
                         .padding(.leading, 56) // Account for the badge width + spacing
                 }
-                
+
                 Divider()
                     .background(AppColors.divider)
-                    .padding(.top, AppSpacing.sm)
+                    .padding(.top, AppSpacing.lg)
             }
             .padding(AppSpacing.lg)
             .background(backgroundView)
