@@ -40,7 +40,7 @@ struct AyahRow: View {
                 // Translation Text
                 if let translation = ayah.translationText {
                     Text(translation)
-                        .font(.system(size: preferences.fontSize * 0.5))
+                        .font(.system(size: preferences.fontSize * 0.75))
                         .foregroundColor(AppColors.textSecondary)
                         .lineSpacing(6)
                         .lineLimit(nil)
