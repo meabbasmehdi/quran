@@ -48,8 +48,6 @@ enum FocusTarget: Hashable {
     case settingsFontSize
     case settingsFontSizeDecrease
     case settingsFontSizeIncrease
-    case settingsAbout
-    case settingsDataSources
     
     // Onboarding
     case onboardingContinue

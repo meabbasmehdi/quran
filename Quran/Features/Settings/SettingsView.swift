@@ -117,15 +117,6 @@ struct SettingsView: View {
                     .padding(AppSpacing.md)
                     .background(AppColors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: AppRadius.medium))
-                    
-                    NavigationLink(destination: AboutView()) {
-                        SettingsRow(
-                            title: "About",
-                            value: ""
-                        )
-                    }
-                    .buttonStyle(QuranButtonStyle())
-                    .focused($focusTarget, equals: .settingsAbout)
                 }
                 .focusSection()
             }
@@ -164,7 +155,7 @@ struct SettingsView: View {
         switch target {
         case .settingsTranslation, .settingsReciter, .settingsFont,
              .settingsFontOption, .settingsFontSize, .settingsFontSizeDecrease,
-             .settingsFontSizeIncrease, .settingsAbout, .settingsDataSources:
+             .settingsFontSizeIncrease:
             return true
         default:
             return false
@@ -202,18 +193,14 @@ struct SettingsView: View {
             switch direction {
             case .right: focusTarget = .settingsFontSizeIncrease
             case .up: focusTarget = selectedFontTarget
-            case .down: focusTarget = .settingsAbout
             default: break
             }
         case .settingsFontSizeIncrease:
             switch direction {
             case .left: focusTarget = .settingsFontSizeDecrease
             case .up: focusTarget = selectedFontTarget
-            case .down: focusTarget = .settingsAbout
             default: break
             }
-        case .settingsAbout:
-            if direction == .up { focusTarget = .settingsFontSizeDecrease }
         default:
             break
         }
